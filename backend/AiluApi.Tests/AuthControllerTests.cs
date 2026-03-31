@@ -59,6 +59,10 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(result);
+        Assert.NotNull(result.Token);
+        Assert.NotEmpty(result.Token);
     }
 
     [Fact]
@@ -88,4 +92,9 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+}
+
+public class LoginResponse
+{
+    public string Token { get; set; }
 }

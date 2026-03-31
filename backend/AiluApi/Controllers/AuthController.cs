@@ -31,12 +31,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var isValid = await _authService.LoginAsync(request.Email, request.Password);
-        if (!isValid)
+        var token = await _authService.LoginAsync(request.Email, request.Password);
+        if (token == null)
         {
             return Unauthorized();
         }
-        return Ok();
+        return Ok(new { Token = token });
     }
 }
 
