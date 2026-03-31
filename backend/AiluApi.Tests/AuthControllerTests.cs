@@ -1,16 +1,20 @@
 using System.Net;
 using System.Net.Http.Json;
 using AiluApi;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AiluApi.Tests;
 
-public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory _factory;
 
-    public AuthControllerTests(WebApplicationFactory<Program> factory)
+    public AuthControllerTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
@@ -92,9 +96,79 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetMe_ValidToken_ReturnsUserInfo()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        
+        // Register and login to get token
+        var registerRequest = new
+        {
+            Email = "me@example.com",
+            Password = "password123"
+        };
+        await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        var loginRequest = new
+        {
+            Email = "me@example.com",
+            Password = "password123"
+        };
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResult.Token);
+
+        // Act
+        var response = await client.GetAsync("/api/auth/me");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var userInfo = await response.Content.ReadFromJsonAsync<UserInfo>();
+        Assert.NotNull(userInfo);
+        Assert.Equal("me@example.com", userInfo.Email);
+    }
 }
 
 public class LoginResponse
 {
     public string Token { get; set; }
+}
+
+public class UserInfo
+{
+    public string Email { get; set; }
+}
+
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            // Override JWT settings for tests
+            config.Sources.Clear();
+            config.AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["Jwt:Key"] = "YourSuperSecretKeyHere12345678901234567890",
+                ["Jwt:Issuer"] = "AiluApi",
+                ["Jwt:Audience"] = "AiluUsers"
+            });
+        });
+
+        builder.ConfigureServices(services =>
+        {
+            // Override the DbContext to use in-memory for tests
+            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AiluApi.Data.AppDbContext>));
+            if (descriptor != null)
+            {
+                services.Remove(descriptor);
+            }
+            services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
+            {
+                options.UseInMemoryDatabase("TestDb");
+            });
+        });
+    }
 }
