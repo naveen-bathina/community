@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<AiluApi.Services.AuthService>();
 builder.Services.AddScoped<AiluApi.Handlers.CreateCaseCommandHandler>();
 builder.Services.AddScoped<AiluApi.Handlers.GetCasesQueryHandler>();
+builder.Services.AddScoped<AiluApi.Handlers.UpdateCaseStatusCommandHandler>();
 builder.Services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
     options.UseInMemoryDatabase("AiluDb"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

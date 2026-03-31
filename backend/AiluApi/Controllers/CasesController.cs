@@ -15,11 +15,13 @@ public class CasesController : ControllerBase
 {
     private readonly CreateCaseCommandHandler _createHandler;
     private readonly GetCasesQueryHandler _getHandler;
+    private readonly UpdateCaseStatusCommandHandler _updateStatusHandler;
 
-    public CasesController(CreateCaseCommandHandler createHandler, GetCasesQueryHandler getHandler)
+    public CasesController(CreateCaseCommandHandler createHandler, GetCasesQueryHandler getHandler, UpdateCaseStatusCommandHandler updateStatusHandler)
     {
         _createHandler = createHandler;
         _getHandler = getHandler;
+        _updateStatusHandler = updateStatusHandler;
     }
 
     [HttpPost]
@@ -51,4 +53,35 @@ public class CasesController : ControllerBase
         }
         return Ok(caseEntity);
     }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateCaseStatus(int id, [FromBody] UpdateCaseStatusRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var command = new UpdateCaseStatusCommand { CaseId = id, NewStatus = request.NewStatus };
+
+        try
+        {
+            var updatedCase = await _updateStatusHandler.Handle(command);
+            // Check if user owns the case
+            if (updatedCase.AssignedUserId != userId)
+            {
+                return Forbid();
+            }
+            return Ok(updatedCase);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+}
+
+public class UpdateCaseStatusRequest
+{
+    public required string NewStatus { get; set; }
 }

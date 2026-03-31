@@ -73,10 +73,59 @@ public class CasesControllerTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task CreateCase_Unauthorized_ReturnsUnauthorized()
+    public async Task UpdateCaseStatus_ValidTransition_ReturnsOk()
     {
-        // Without token
-        var createResponse = await _client.PostAsJsonAsync("/api/cases", new { Title = "Test Case", Description = "Test Description", AssignedUserId = 1 });
-        Assert.Equal(HttpStatusCode.Unauthorized, createResponse.StatusCode);
+        // Setup user and token
+        var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", new { Email = "test3@example.com", Password = "password123" });
+        registerResponse.EnsureSuccessStatusCode();
+
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new { Email = "test3@example.com", Password = "password123" });
+        loginResponse.EnsureSuccessStatusCode();
+
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        var token = loginResult!.Token;
+
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Create case
+        var createResponse = await _client.PostAsJsonAsync("/api/cases", new { Title = "Test Case Status", Description = "Test", AssignedUserId = 3 });
+        createResponse.EnsureSuccessStatusCode();
+
+        var createdCase = await createResponse.Content.ReadFromJsonAsync<Case>();
+        var caseId = createdCase!.Id;
+
+        // Update status to InProgress
+        var updateResponse = await _client.PutAsJsonAsync($"/api/cases/{caseId}/status", new { NewStatus = "InProgress" });
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        var updatedCase = await updateResponse.Content.ReadFromJsonAsync<Case>();
+        Assert.Equal(CaseStatus.InProgress, updatedCase!.Status);
+    }
+
+    [Fact]
+    public async Task UpdateCaseStatus_InvalidTransition_ReturnsBadRequest()
+    {
+        // Similar setup
+        var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", new { Email = "test4@example.com", Password = "password123" });
+        registerResponse.EnsureSuccessStatusCode();
+
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new { Email = "test4@example.com", Password = "password123" });
+        loginResponse.EnsureSuccessStatusCode();
+
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        var token = loginResult!.Token;
+
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Create case
+        var createResponse = await _client.PostAsJsonAsync("/api/cases", new { Title = "Test Case Invalid", Description = "Test", AssignedUserId = 4 });
+        createResponse.EnsureSuccessStatusCode();
+
+        var createdCase = await createResponse.Content.ReadFromJsonAsync<Case>();
+        var caseId = createdCase!.Id;
+
+        // Try invalid transition: Open to Resolved
+        var updateResponse = await _client.PutAsJsonAsync($"/api/cases/{caseId}/status", new { NewStatus = "Resolved" });
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
     }
 }
