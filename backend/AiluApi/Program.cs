@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 builder.Services.AddScoped<AiluApi.Services.AuthService>();
+builder.Services.AddScoped<AiluApi.Handlers.CreateCaseCommandHandler>();
+builder.Services.AddScoped<AiluApi.Handlers.GetCasesQueryHandler>();
 builder.Services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
     options.UseInMemoryDatabase("AiluDb"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
