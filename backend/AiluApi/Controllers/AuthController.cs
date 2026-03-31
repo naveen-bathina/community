@@ -17,14 +17,25 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        await _authService.RegisterAsync(request.Email, request.Password);
-        return Ok();
+        try
+        {
+            await _authService.RegisterAsync(request.Email, request.Password);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        await _authService.LoginAsync(request.Email, request.Password);
+        var isValid = await _authService.LoginAsync(request.Email, request.Password);
+        if (!isValid)
+        {
+            return Unauthorized();
+        }
         return Ok();
     }
 }
