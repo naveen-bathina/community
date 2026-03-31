@@ -1,9 +1,11 @@
 # AILU MVP: Unified Community + Client + Case + Sub-association Management Platform
 
 ## Problem Statement
+
 AILU needs a single unified platform to manage a large distributed legal community (advocates, aspirants, students), practice clients, legal cases, and sub-associations. Existing workflows are manual, fragmented (WhatsApp/email/spreadsheets), and lack consistent onboarding, trust, and monetization operations.
 
 Without it:
+
 - community interactions are unstructured,
 - membership/subscription management is error-prone,
 - client engagement and service delivery are difficult to scale,
@@ -11,7 +13,9 @@ Without it:
 - local advocate-led chapters cannot self-govern efficiently.
 
 ## Solution
+
 Build AILU as an integrated web platform with:
+
 - member profiles & role access
 - tiered pricing/subscriptions
 - client accounts + billing
@@ -21,6 +25,7 @@ Build AILU as an integrated web platform with:
 - analytics and operations dashboards
 
 ## User Stories
+
 1. As an aspirant, I want to sign up with one profile, so I can join quickly.
 2. As an advocate, I want premium tier access, so I can get exclusive mentorship.
 3. As a student, I want to browse workshops, so I can plan learning.
@@ -78,6 +83,7 @@ Build AILU as an integrated web platform with:
 55. As member, I want join multiple associations.
 
 ## Implementation Decisions
+
 - Modular product in layers:
   - Auth/profile module
   - Role/permissions module
@@ -109,6 +115,7 @@ Build AILU as an integrated web platform with:
 - India-specific rules for GST and compliance.
 
 ## Testing Decisions
+
 - Behavior tests: signup, client onboarding, case lifecycle, advocacy matching, association member flows.
 - Unit tests for pricing rules, matches, role checks.
 - API contract tests for payment integration and notifications.
@@ -117,6 +124,7 @@ Build AILU as an integrated web platform with:
 - Prior art: existing community SaaS + legal tech workflow test patterns.
 
 ## Out of Scope
+
 - Native mobile app
 - Enterprise SSO (initial)
 - Full e-filing integration
@@ -125,6 +133,7 @@ Build AILU as an integrated web platform with:
 - Complete CRM pipeline/ERP integration (phase 2)
 
 ## Further Notes
+
 - MVP focus:
   - member/client/case core + subscriptions + association governance
 - Phase 2:
