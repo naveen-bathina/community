@@ -3,6 +3,7 @@
 > Source PRD: PRD_AILU.md
 
 ## Goal
+
 Build a robust case and advocate matching backend using CQRS and event sourcing for auditability and future scaling.
 
 ## Key concepts
@@ -17,14 +18,17 @@ Build a robust case and advocate matching backend using CQRS and event sourcing 
 ### Command gateway
 
 `ICaseCommandService`
+
 - `Task<CommandResult> HandleAsync(ICaseCommand command);`
 
 `ICaseCommand` includes:
+
 - `Guid CaseId`
 - `Guid ActorId` (user performing action)
 - `DateTimeOffset Timestamp`
 
 Commands:
+
 - `CreateCaseCommand` (title, court, parties, fee type, initial advocate preference)
 - `UpdateCaseCommand` (partial edit fields)
 - `AddCaseDocumentCommand` (doc metadata + storage key)
@@ -35,11 +39,13 @@ Commands:
 ### Event store
 
 `ICaseEventStore`
+
 - `Task AppendAsync(Guid aggregateId, IReadOnlyCollection<IDomainEvent> events);
 - `Task<IReadOnlyCollection<IDomainEvent>> LoadAsync(Guid aggregateId);`
 - `Task<bool> ExistsAsync(Guid aggregateId);`
 
 Domain events:
+
 - `CaseCreated` (initial metadata)
 - `CaseUpdated`
 - `CaseDocumentAdded`
@@ -51,6 +57,7 @@ Domain events:
 ### Case aggregate root (write-side business logic)
 
 `CaseAggregate` accepts events and state:
+
 - state fields: case metadata, assigned advocates, status, history ids
 - methods: `Apply` for each event type
 - method: `Handle(CreateCaseCommand)` etc. returns events
@@ -62,16 +69,19 @@ Domain events:
 ### Projection handlers
 
 Examples:
+
 - `CaseReadModelProjection` updates case view store
 - `CaseHistoryProjection` stores per-case timeline items
 - `CaseMetricsProjection` updates counters (monthly cases, active, conversion)
 
 Each projection implements:
+
 - `Task HandleAsync(IDomainEvent @event)`
 
 ### Query gateway
 
 `ICaseQueryService`
+
 - `Task<CaseReadModel> GetCaseAsync(Guid caseId);`
 - `Task<PagedResult<CaseReadModel>> SearchCasesAsync(CaseSearchCriteria criteria);`
 - `Task<IEnumerable<AdvocateProfile>> SearchAdvocatesAsync(AdvocateSearchCriteria criteria);`
@@ -80,6 +90,7 @@ Each projection implements:
 ### Advocate matching support
 
 `AdvocateSearchCriteria` fields:
+
 - `PracticeArea`, `Region`, `PenaltyStatus`, `RatingMin`, `Availability`
 - `IncludeReviewSupport` (for second-opinion requests)
 
@@ -88,9 +99,11 @@ Each projection implements:
 ## Persistence
 
 Write model event store can use PostgreSQL table `case_events`:
+
 - `aggregate_id`, `sequence`, `event_type`, `data`, `created_at`
 
 Read model tables:
+
 - `case_read_models`, `case_history`, `case_metrics`.
 
 ## Anticipated API flow

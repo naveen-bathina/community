@@ -46,9 +46,11 @@
 **User stories**: 1, 2, 3, 16, 6
 
 ### What to build
+
 User accounts with signup/login, profile management, role selection, and KYC document attachment. Public catalog of membership tiers with checkout stub.
 
 ### Acceptance criteria
+
 - [ ] User can register and login
 - [ ] User can update profile and upload KYC documents
 - [ ] User can select roles (advocate/student/aspirant)
@@ -62,9 +64,11 @@ User accounts with signup/login, profile management, role selection, and KYC doc
 **User stories**: 4, 5, 7, 8, 9, 10, 11, 13, 14, 18
 
 ### What to build
+
 Tiered plan management, subscription checkout/integration, membership status checks. Community features: forums, event listing/booking, announcements.
 
 ### Acceptance criteria
+
 - [ ] Admin can create pricing plans
 - [ ] Subscription buy/upgrade/downgrade/cancel flows work end-to-end
 - [ ] Paid access gating works for premium content/events
@@ -78,9 +82,11 @@ Tiered plan management, subscription checkout/integration, membership status che
 **User stories**: 22-31
 
 ### What to build
+
 Client CRM module, client contacts, contracts, seat assignment, quotes/invoices, payment tracking and accounting.
 
 ### Acceptance criteria
+
 - [ ] Admin can create clients and contacts
 - [ ] Contracts and billing periods are tracked
 - [ ] Invoices can be generated and paid through provider stub
@@ -94,9 +100,11 @@ Client CRM module, client contacts, contracts, seat assignment, quotes/invoices,
 **User stories**: 32-45
 
 ### What to build
+
 Case lifecycle management, document library with versioning and history logs, advocate search for vakalat and review requests, deadlines and alerts.
 
 ### Acceptance criteria
+
 - [ ] Case creation and status management works
 - [ ] Case document upload/download with access controls works
 - [ ] Advocate matchmaking by specialization/location/rating available
@@ -110,9 +118,11 @@ Case lifecycle management, document library with versioning and history logs, ad
 **User stories**: 46-55
 
 ### What to build
+
 Sub-association creation and member management by advocates, role delegation, shared content and events within associations, KPIs and metrics.
 
 ### Acceptance criteria
+
 - [ ] Advocate can create and configure sub-association
 - [ ] Members can join by invite/approval
 - [ ] Sub-admin assignment and member role changes work
@@ -126,9 +136,11 @@ Sub-association creation and member management by advocates, role delegation, sh
 **User stories**: 15, 21, 29, 45, additional cross-cutting requirements
 
 ### What to build
+
 Central admin dashboard for member/client/case metrics, CSV exports, reminder rules, compliance log and audit reporting.
 
 ### Acceptance criteria
+
 - [ ] Admin can see key metrics (MRR, churn, client revenue, case volume)
 - [ ] CSV export for members and cases works
 - [ ] Renewal reminders and status alerts are generated
@@ -137,6 +149,7 @@ Central admin dashboard for member/client/case metrics, CSV exports, reminder ru
 ---
 
 ## Checkpoint questions
+
 1. Does the phase granularity feel right (too coarse or too fine)?
 2. Should any phase be split (e.g., split Case from Client) or merged?
 3. Are there mandatory compliance or data privacy constraints to add before development starts?
