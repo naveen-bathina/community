@@ -27,6 +27,8 @@ public class CasesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateCase([FromBody] CreateCaseCommand command)
     {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        command.AssignedUserId = userId;
         var caseEntity = await _createHandler.Handle(command);
         return CreatedAtAction(nameof(GetCase), new { id = caseEntity.Id }, caseEntity);
     }
