@@ -4,6 +4,7 @@ using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 
@@ -22,8 +23,8 @@ public class AuthService
 
     public async Task RegisterAsync(string email, string password, string? name = null, string role = "member")
     {
-        // Basic email validation
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+        // Basic email validation using MailAddress for reliable format checking
+        if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
         {
             throw new InvalidOperationException("Invalid email format");
         }
@@ -84,5 +85,23 @@ public class AuthService
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var trimmed = email.Trim();
+            var addr = new MailAddress(trimmed);
+            return addr.Address == trimmed;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 }
