@@ -19,6 +19,16 @@ public class PricingController : ControllerBase
     private int GetUserId() =>
         int.Parse(User.FindFirstValue("uid")!);
 
+    [HttpGet("plans/{id}")]
+    public async Task<IActionResult> GetPlan(int id)
+    {
+        var plans = await _pricingService.GetActivePlansAsync();
+        var plan = plans.FirstOrDefault(p => p.Id == id);
+        if (plan == null)
+            return NotFound();
+        return Ok(plan);
+    }
+
     [HttpGet("plans")]
     public async Task<IActionResult> GetPlans()
     {
@@ -31,8 +41,8 @@ public class PricingController : ControllerBase
     public async Task<IActionResult> CreatePlan([FromBody] CreatePlanRequest request)
     {
         var plan = await _pricingService.CreatePlanAsync(
-            request.Name, request.Price, request.Description, request.TrialDays, request.DiscountPercent);
-        return CreatedAtAction(nameof(GetPlans), new { }, plan);
+            request.Name, request.Price, request.Description, request.TrialDays, request.DiscountPercent, request.DurationMonths);
+        return CreatedAtAction(nameof(GetPlan), new { id = plan.Id }, plan);
     }
 
     [HttpGet("subscription")]
@@ -83,6 +93,7 @@ public class CreatePlanRequest
     public string? Description { get; set; }
     public int? TrialDays { get; set; }
     public decimal? DiscountPercent { get; set; }
+    public int DurationMonths { get; set; } = 1;
 }
 
 public class SubscribeRequest

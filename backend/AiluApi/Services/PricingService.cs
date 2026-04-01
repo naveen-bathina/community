@@ -19,7 +19,7 @@ public class PricingService
     }
 
     public async Task<PricingPlan> CreatePlanAsync(string name, decimal price, string? description,
-        int? trialDays, decimal? discountPercent)
+        int? trialDays, decimal? discountPercent, int durationMonths = 1)
     {
         var plan = new PricingPlan
         {
@@ -27,7 +27,8 @@ public class PricingService
             Price = price,
             Description = description,
             TrialDays = trialDays,
-            DiscountPercent = discountPercent
+            DiscountPercent = discountPercent,
+            DurationMonths = durationMonths
         };
         _context.PricingPlans.Add(plan);
         await _context.SaveChangesAsync();
@@ -48,7 +49,7 @@ public class PricingService
             existing.StartDate = DateTime.UtcNow;
             existing.EndDate = plan.TrialDays.HasValue
                 ? DateTime.UtcNow.AddDays(plan.TrialDays.Value)
-                : DateTime.UtcNow.AddMonths(1);
+                : DateTime.UtcNow.AddMonths(plan.DurationMonths);
             await _context.SaveChangesAsync();
             return existing;
         }
@@ -61,7 +62,7 @@ public class PricingService
             StartDate = DateTime.UtcNow,
             EndDate = plan.TrialDays.HasValue
                 ? DateTime.UtcNow.AddDays(plan.TrialDays.Value)
-                : DateTime.UtcNow.AddMonths(1)
+                : DateTime.UtcNow.AddMonths(plan.DurationMonths)
         };
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync();

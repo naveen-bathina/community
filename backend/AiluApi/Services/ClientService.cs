@@ -70,7 +70,7 @@ public class ClientService
         if (client == null)
             throw new InvalidOperationException("Client not found");
 
-        var invoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+        var invoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}";
         var invoice = new Invoice
         {
             ClientId = clientId,

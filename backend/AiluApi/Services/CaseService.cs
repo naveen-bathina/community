@@ -134,7 +134,7 @@ public class CaseService
     {
         return await _context.CaseHistories
             .Where(h => h.CaseId == caseId)
-            .OrderBy(h => h.Timestamp)
+            .OrderByDescending(h => h.Timestamp)
             .ToListAsync();
     }
 

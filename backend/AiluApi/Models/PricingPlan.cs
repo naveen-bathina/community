@@ -8,6 +8,7 @@ public class PricingPlan
     public string? Description { get; set; }
     public int? TrialDays { get; set; }
     public decimal? DiscountPercent { get; set; }
+    public int DurationMonths { get; set; } = 1; // 1=monthly, 3=quarterly, 12=annual
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
