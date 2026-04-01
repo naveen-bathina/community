@@ -20,13 +20,13 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Register_ValidUser_ReturnsSuccess()
+    public async Task Register_InvalidEmail_ReturnsBadRequest()
     {
         // Arrange
         var client = _factory.CreateClient();
         var registerRequest = new
         {
-            Email = "register@example.com",
+            Email = "invalid-email",
             Password = "password123"
         };
 
@@ -34,7 +34,46 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
         var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_DuplicateEmail_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var registerRequest = new
+        {
+            Email = "duplicate@example.com",
+            Password = "password123"
+        };
+
+        // First registration
+        await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Act - second registration with same email
+        var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_EmptyPassword_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var registerRequest = new
+        {
+            Email = "test@example.com",
+            Password = ""
+        };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -42,7 +81,7 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         // Arrange
         var client = _factory.CreateClient();
-        
+
         // First register the user
         var registerRequest = new
         {
@@ -74,7 +113,7 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         // Arrange
         var client = _factory.CreateClient();
-        
+
         // Register the user
         var registerRequest = new
         {
@@ -102,7 +141,7 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         // Arrange
         var client = _factory.CreateClient();
-        
+
         // Register and login to get token
         var registerRequest = new
         {
