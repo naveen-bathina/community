@@ -60,16 +60,22 @@ public class CasesController : ControllerBase
     public async Task<IActionResult> UpdateCaseStatus(int id, [FromBody] UpdateCaseStatusRequest request)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+        // Ensure the current user owns the case before attempting to update it
+        var query = new GetCasesQuery { AssignedUserId = userId };
+        var cases = await _getHandler.Handle(query);
+        var caseEntity = cases.FirstOrDefault(c => c.Id == id);
+        if (caseEntity == null)
+        {
+            // Either the case does not exist or the user does not have access to it
+            return NotFound();
+        }
+
         var command = new UpdateCaseStatusCommand { CaseId = id, NewStatus = request.NewStatus };
 
         try
         {
             var updatedCase = await _updateStatusHandler.Handle(command);
-            // Check if user owns the case
-            if (updatedCase.AssignedUserId != userId)
-            {
-                return Forbid();
-            }
             return Ok(updatedCase);
         }
         catch (ArgumentException ex)
