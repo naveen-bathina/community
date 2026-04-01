@@ -24,43 +24,44 @@ public class UpdateCaseStatusCommandHandler
             throw new ArgumentException("Case not found");
         }
 
-        if (!Enum.TryParse<CaseStatus>(command.NewStatus, out var newStatus))
+        var newStatus = command.NewStatus?.ToLower();
+        if (!IsValidStatus(newStatus))
         {
             throw new ArgumentException("Invalid status");
         }
 
-        // Validate transitions
-        if (!IsValidTransition(caseEntity.Status, newStatus))
+        if (!IsValidTransition(caseEntity.Status, newStatus!))
         {
             throw new InvalidOperationException($"Invalid status transition from {caseEntity.Status} to {newStatus}");
         }
 
         var oldStatus = caseEntity.Status;
-        caseEntity.Status = newStatus;
-        caseEntity.UpdatedAt = DateTime.UtcNow;
+        caseEntity.Status = newStatus!;
 
         await _context.SaveChangesAsync();
 
-        // Publish event
         var @event = new CaseStatusUpdatedEvent
         {
             CaseId = caseEntity.Id,
-            OldStatus = oldStatus.ToString(),
-            NewStatus = newStatus.ToString()
+            OldStatus = oldStatus,
+            NewStatus = newStatus!
         };
         _eventStore.Append(@event);
 
         return caseEntity;
     }
 
-    private bool IsValidTransition(CaseStatus current, CaseStatus next)
+    private static bool IsValidStatus(string? status) =>
+        status is "intake" or "active" or "review" or "closed";
+
+    private static bool IsValidTransition(string current, string next)
     {
         return (current, next) switch
         {
-            (CaseStatus.Open, CaseStatus.InProgress) => true,
-            (CaseStatus.InProgress, CaseStatus.Resolved) => true,
-            (CaseStatus.InProgress, CaseStatus.Closed) => true,
-            (CaseStatus.Resolved, CaseStatus.Closed) => true,
+            ("intake", "active") => true,
+            ("active", "review") => true,
+            ("active", "closed") => true,
+            ("review", "closed") => true,
             _ => false
         };
     }

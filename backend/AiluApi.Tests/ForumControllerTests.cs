@@ -1,15 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AiluApi.Tests;
 
-public class ForumControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class ForumControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory _factory;
 
-    public ForumControllerTests(WebApplicationFactory<Program> factory)
+    public ForumControllerTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }

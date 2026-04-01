@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMe()
     {
-        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var idClaim = User.FindFirstValue("uid");
         if (string.IsNullOrWhiteSpace(idClaim))
         {
             return Unauthorized();

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,8 +23,19 @@ builder.Services.AddScoped<AiluApi.Services.CaseService>();
 builder.Services.AddScoped<AiluApi.Services.SubAssociationService>();
 builder.Services.AddScoped<AiluApi.Services.EventService>();
 builder.Services.AddScoped<AiluApi.Services.ForumService>();
-builder.Services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    var testDbName = builder.Configuration["TestDbName"] ?? "TestDb";
+    builder.Services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
+        options.UseInMemoryDatabase(testDbName));
+}
+else
+{
+    builder.Services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

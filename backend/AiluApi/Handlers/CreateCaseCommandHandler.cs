@@ -22,22 +22,19 @@ public class CreateCaseCommandHandler
         {
             Title = command.Title,
             Description = command.Description,
-            AssignedUserId = command.AssignedUserId,
-            Status = CaseStatus.Open,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Status = "intake",
+            CreatedAt = DateTime.UtcNow
         };
 
         _context.Cases.Add(caseEntity);
         await _context.SaveChangesAsync();
 
-        // Publish event
         var @event = new CaseCreatedEvent
         {
             CaseId = caseEntity.Id,
             Title = caseEntity.Title,
             Description = caseEntity.Description,
-            AssignedUserId = caseEntity.AssignedUserId
+            AssignedUserId = command.AssignedUserId
         };
         _eventStore.Append(@event);
 

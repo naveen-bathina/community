@@ -1,6 +1,7 @@
 using AiluApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace AiluApi.Controllers;
@@ -23,7 +24,7 @@ public class ProfileController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyProfile()
     {
-        var profile = await _profileService.GetProfileAsync(GetUserId());
+        var profile = await _profileService.GetProfileViewAsync(GetUserId());
         if (profile == null)
             return NotFound();
         return Ok(profile);
@@ -32,9 +33,21 @@ public class ProfileController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        var profile = await _profileService.UpsertProfileAsync(
-            GetUserId(), request.Bio, request.Specialization, request.BarNumber, request.HighCourt);
-        return Ok(profile);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var profile = await _profileService.UpsertProfileAsync(
+                GetUserId(),
+                request.Name, request.Phone, request.District, request.State,
+                request.Bio, request.Specialization, request.BarNumber, request.HighCourt);
+            return Ok(profile);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("kyc")]
@@ -58,9 +71,29 @@ public class ProfileController : ControllerBase
 
 public class UpdateProfileRequest
 {
+    [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
+    public string? Name { get; set; }
+
+    [Phone(ErrorMessage = "Invalid phone number format.")]
+    [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters.")]
+    public string? Phone { get; set; }
+
+    [MaxLength(100, ErrorMessage = "District cannot exceed 100 characters.")]
+    public string? District { get; set; }
+
+    [MaxLength(100, ErrorMessage = "State cannot exceed 100 characters.")]
+    public string? State { get; set; }
+
+    [MaxLength(1000, ErrorMessage = "Bio cannot exceed 1000 characters.")]
     public string? Bio { get; set; }
+
+    [MaxLength(100, ErrorMessage = "Specialization cannot exceed 100 characters.")]
     public string? Specialization { get; set; }
+
+    [MaxLength(50, ErrorMessage = "Bar number cannot exceed 50 characters.")]
     public string? BarNumber { get; set; }
+
+    [MaxLength(100, ErrorMessage = "High court cannot exceed 100 characters.")]
     public string? HighCourt { get; set; }
 }
 
