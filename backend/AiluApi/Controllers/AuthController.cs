@@ -50,13 +50,18 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMe()
     {
-        var email = User.FindFirst(ClaimTypes.Name)?.Value;
-        if (email == null)
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(idClaim))
         {
             return Unauthorized();
         }
 
-        var user = await _context.Users.FindAsync(int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value));
+        if (!int.TryParse(idClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _context.Users.FindAsync(userId);
         if (user == null)
         {
             return NotFound();
