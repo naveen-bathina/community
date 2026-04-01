@@ -335,7 +335,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             }
             services.AddDbContext<AiluApi.Data.AppDbContext>(options =>
             {
-                options.UseInMemoryDatabase("TestDb");
+                options.UseInMemoryDatabase(System.Guid.NewGuid().ToString());
             });
         });
     }
