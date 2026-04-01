@@ -27,23 +27,7 @@ public class ProfileService
         if (user == null)
             return null;
 
-        return new ProfileView
-        {
-            UserId = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            District = user.District,
-            State = user.State,
-            Bio = user.Profile?.Bio,
-            Specialization = user.Profile?.Specialization,
-            BarNumber = user.Profile?.BarNumber,
-            HighCourt = user.Profile?.HighCourt,
-            KycVerified = user.Profile?.KycVerified ?? false,
-            Rating = user.Profile?.Rating ?? 0,
-            IsAvailable = user.Profile?.IsAvailable ?? true,
-            UpdatedAt = user.Profile?.UpdatedAt ?? user.CreatedAt
-        };
+        return BuildProfileView(user);
     }
 
     public async Task<ProfileView> UpsertProfileAsync(int userId, string? name, string? phone,
@@ -67,6 +51,7 @@ public class ProfileService
         {
             profile = new Profile { UserId = userId };
             _context.Profiles.Add(profile);
+            user.Profile = profile;
         }
 
         if (bio != null) profile.Bio = bio;
@@ -77,24 +62,26 @@ public class ProfileService
 
         await _context.SaveChangesAsync();
 
-        return new ProfileView
-        {
-            UserId = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            District = user.District,
-            State = user.State,
-            Bio = profile.Bio,
-            Specialization = profile.Specialization,
-            BarNumber = profile.BarNumber,
-            HighCourt = profile.HighCourt,
-            KycVerified = profile.KycVerified,
-            Rating = profile.Rating,
-            IsAvailable = profile.IsAvailable,
-            UpdatedAt = profile.UpdatedAt
-        };
+        return BuildProfileView(user);
     }
+
+    private static ProfileView BuildProfileView(User user) => new()
+    {
+        UserId = user.Id,
+        Name = user.Name,
+        Email = user.Email,
+        Phone = user.Phone,
+        District = user.District,
+        State = user.State,
+        Bio = user.Profile?.Bio,
+        Specialization = user.Profile?.Specialization,
+        BarNumber = user.Profile?.BarNumber,
+        HighCourt = user.Profile?.HighCourt,
+        KycVerified = user.Profile?.KycVerified ?? false,
+        Rating = user.Profile?.Rating ?? 0,
+        IsAvailable = user.Profile?.IsAvailable ?? true,
+        UpdatedAt = user.Profile?.UpdatedAt ?? user.CreatedAt
+    };
 
     public async Task UploadKycDocumentAsync(int userId, string documentPath)
     {
