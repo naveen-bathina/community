@@ -1,15 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AiluApi.Tests;
 
-public class EventControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class EventControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory _factory;
 
-    public EventControllerTests(WebApplicationFactory<Program> factory)
+    public EventControllerTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }

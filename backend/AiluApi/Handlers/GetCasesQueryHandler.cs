@@ -20,7 +20,7 @@ public class GetCasesQueryHandler
 
         if (query.AssignedUserId.HasValue)
         {
-            queryable = queryable.Where(c => c.AssignedUserId == query.AssignedUserId.Value);
+            queryable = queryable.Where(c => c.ClientId == query.AssignedUserId.Value);
         }
 
         return await queryable.ToListAsync();
