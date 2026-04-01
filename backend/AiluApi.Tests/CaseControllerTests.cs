@@ -17,7 +17,7 @@ public class CaseControllerTests : IClassFixture<WebApplicationFactory<Program>>
     private async Task<HttpClient> GetAuthClientAsync(string email, string role = "member")
     {
         var http = _factory.CreateClient();
-        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass123", role);
+        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass1234", role);
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return http;
     }
@@ -113,7 +113,7 @@ public class CaseControllerTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Create advocate user
         var advocateHttp = _factory.CreateClient();
-        var advocateToken = await TestAuthHelper.RegisterAndLoginAsync(advocateHttp, "case_advocate@example.com", "pass123", "advocate");
+        var advocateToken = await TestAuthHelper.RegisterAndLoginAsync(advocateHttp, "case_advocate@example.com", "pass1234", "advocate");
 
         var clientId = await CreateTestClientAsync(http);
         var createResp = await http.PostAsJsonAsync("/api/cases", new { ClientId = clientId, Title = "Advocate Assignment Case" });

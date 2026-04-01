@@ -17,7 +17,7 @@ public class SubAssociationControllerTests : IClassFixture<WebApplicationFactory
     private async Task<HttpClient> GetAuthClientAsync(string email, string role = "member")
     {
         var http = _factory.CreateClient();
-        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass123", role);
+        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass1234", role);
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return http;
     }

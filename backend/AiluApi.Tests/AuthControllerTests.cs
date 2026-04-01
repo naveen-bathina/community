@@ -92,6 +92,61 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Register_InvalidEmail_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var registerRequest = new
+        {
+            Email = "not-an-email",
+            Password = "password123"
+        };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_PasswordTooShort_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var registerRequest = new
+        {
+            Email = "short@example.com",
+            Password = "short7x"
+        };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_DuplicateEmail_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var registerRequest = new
+        {
+            Email = "duplicate@example.com",
+            Password = "password123"
+        };
+        await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Act - register same email again
+        var response = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
 
 public class LoginResponse

@@ -26,12 +26,12 @@ public class PricingControllerTests : IClassFixture<WebApplicationFactory<Progra
     public async Task Subscribe_ValidPlan_ReturnsOk()
     {
         var client = _factory.CreateClient();
-        var token = await TestAuthHelper.RegisterAndLoginAsync(client, "pricing_sub@example.com", "pass123");
+        var token = await TestAuthHelper.RegisterAndLoginAsync(client, "pricing_sub@example.com", "pass1234");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Create a plan first (need admin role – use admin user)
         var adminClient = _factory.CreateClient();
-        var adminToken = await TestAuthHelper.RegisterAndLoginAsync(adminClient, "pricing_admin@example.com", "pass123", "admin");
+        var adminToken = await TestAuthHelper.RegisterAndLoginAsync(adminClient, "pricing_admin@example.com", "pass1234", "admin");
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
         var planResponse = await adminClient.PostAsJsonAsync("/api/pricing/plans", new
         {
@@ -53,7 +53,7 @@ public class PricingControllerTests : IClassFixture<WebApplicationFactory<Progra
     public async Task GetSubscription_WithoutSubscription_ReturnsNotFound()
     {
         var client = _factory.CreateClient();
-        var token = await TestAuthHelper.RegisterAndLoginAsync(client, "pricing_nosub@example.com", "pass123");
+        var token = await TestAuthHelper.RegisterAndLoginAsync(client, "pricing_nosub@example.com", "pass1234");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.GetAsync("/api/pricing/subscription");
