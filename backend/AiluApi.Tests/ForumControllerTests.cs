@@ -17,7 +17,7 @@ public class ForumControllerTests : IClassFixture<WebApplicationFactory<Program>
     private async Task<HttpClient> GetAuthClientAsync(string email)
     {
         var http = _factory.CreateClient();
-        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass123");
+        var token = await TestAuthHelper.RegisterAndLoginAsync(http, email, "pass1234");
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return http;
     }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using AiluApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,14 +43,24 @@ public class AuthController : ControllerBase
 
 public class RegisterRequest
 {
+    [Required]
+    [EmailAddress]
     public required string Email { get; set; }
+
+    [Required]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
     public required string Password { get; set; }
+
     public string? Name { get; set; }
     public string? Role { get; set; }
 }
 
 public class LoginRequest
 {
+    [Required]
+    [EmailAddress]
     public required string Email { get; set; }
+
+    [Required]
     public required string Password { get; set; }
 }
