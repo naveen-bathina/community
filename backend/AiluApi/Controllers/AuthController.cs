@@ -19,7 +19,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _authService.RegisterAsync(request.Email, request.Password);
+            await _authService.RegisterAsync(request.Email, request.Password, request.Name, request.Role ?? "member");
             return Ok();
         }
         catch (InvalidOperationException ex)
@@ -44,6 +44,8 @@ public class RegisterRequest
 {
     public required string Email { get; set; }
     public required string Password { get; set; }
+    public string? Name { get; set; }
+    public string? Role { get; set; }
 }
 
 public class LoginRequest

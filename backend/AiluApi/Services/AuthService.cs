@@ -20,7 +20,7 @@ public class AuthService
         _configuration = configuration;
     }
 
-    public async Task RegisterAsync(string email, string password)
+    public async Task RegisterAsync(string email, string password, string? name = null, string role = "member")
     {
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
@@ -28,8 +28,14 @@ public class AuthService
             throw new InvalidOperationException("User already exists");
         }
 
+        var validRoles = new[] { "member", "advocate", "student", "admin", "client_user" };
+        if (!validRoles.Contains(role))
+        {
+            throw new InvalidOperationException("Invalid role");
+        }
+
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-        var user = new User { Email = email, PasswordHash = passwordHash };
+        var user = new User { Email = email, PasswordHash = passwordHash, Name = name, Role = role };
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
     }
@@ -42,22 +48,27 @@ public class AuthService
             return null;
         }
 
-        // Generate JWT token
+        return GenerateToken(user);
+    }
+
+    private string GenerateToken(User user)
+    {
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new Claim("uid", user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
