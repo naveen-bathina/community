@@ -22,6 +22,18 @@ public class AuthService
 
     public async Task RegisterAsync(string email, string password, string? name = null, string role = "member")
     {
+        // Basic email validation
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+        {
+            throw new InvalidOperationException("Invalid email format");
+        }
+
+        // Basic password validation
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        {
+            throw new InvalidOperationException("Password must be at least 6 characters long");
+        }
+
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
         {

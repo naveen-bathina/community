@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using AiluApi.Services;
+using AiluApi.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AiluApi.Controllers;
 
@@ -9,10 +12,12 @@ namespace AiluApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;
+    private readonly AppDbContext _context;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, AppDbContext context)
     {
         _authService = authService;
+        _context = context;
     }
 
     [HttpPost("register")]
@@ -38,6 +43,30 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
         return Ok(new { Token = token });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe()
+    {
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(idClaim))
+        {
+            return Unauthorized();
+        }
+
+        if (!int.TryParse(idClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new { Email = user.Email, Id = user.Id });
     }
 }
 
