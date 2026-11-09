@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isApprovedMember() {
+      return request.auth != null &&
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    function isValidImageFile() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isValidDocumentFile() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+
+    function isValidFileSize(maxSizeBytes) {
+      return request.resource.size <= maxSizeBytes;
+    }
+
+    // Profile photos
+    match /profile_photos/{userId}/{fileName} {
+      // Anyone can read approved member photos
+      allow read: if true;
+
+      // Users can upload their own profile photo (max 500KB)
+      allow create, update: if isAuthenticated() &&
+                               request.auth.uid == userId &&
+                               isValidImageFile() &&
+                               isValidFileSize(500 * 1024); // 500KB
+
+      // Users can delete their own photos
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Chat attachments
+    match /chat_attachments/{messageId}/{fileName} {
+      // Only approved members can read attachments
+      allow read: if isApprovedMember();
+
+      // Approved members can upload chat attachments (max 5MB)
+      allow create: if isApprovedMember() &&
+                       (isValidImageFile() || isValidDocumentFile()) &&
+                       isValidFileSize(5 * 1024 * 1024); // 5MB
+
+      // Users cannot update or delete attachments once uploaded
+      // (messages are immutable once sent)
+      allow update, delete: if false;
+    }
+  }
+}

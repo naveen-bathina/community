@@ -1,0 +1,184 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function userExists() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isApprovedMember() {
+      return userExists() && getUserData().status == 'approved';
+    }
+
+    function isAdmin() {
+      return userExists() &&
+             (getUserData().role == 'admin' || getUserData().role == 'founding_admin');
+    }
+
+    function isNotBanned() {
+      return userExists() && getUserData().status != 'banned';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can always read their own profile (even before doc exists);
+      // authenticated users can read profiles for directory & admin verification
+      allow read: if isUser(userId) || isAuthenticated();
+
+      // Users can create their own profile / join request during registration
+      allow create: if isUser(userId) &&
+                       request.resource.data.userId == userId &&
+                       request.resource.data.status == 'pending';
+
+      // Users can update/resubmit their own profile, and admins/verifiers can approve or reject requests
+      allow update: if isAuthenticated();
+
+      // Admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Conversations (1-1 chat metadata)
+    match /conversations/{conversationId} {
+      // Participants can read their own conversations
+      allow read: if isApprovedMember() &&
+                     request.auth.uid in resource.data.participants;
+
+      // Approved members can create conversations
+      allow create: if isApprovedMember() &&
+                       request.auth.uid in request.resource.data.participants;
+
+      // Participants can update conversation metadata
+      allow update: if isApprovedMember() &&
+                       request.auth.uid in resource.data.participants;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Participants can read messages
+        allow read: if isApprovedMember() &&
+                       request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+
+        // Participants can send messages
+        allow create: if isApprovedMember() &&
+                         request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants &&
+                         request.resource.data.senderId == request.auth.uid;
+
+        // Users can delete their own messages
+        allow delete: if isUser(resource.data.senderId);
+      }
+    }
+
+    // Group Chat (community-wide)
+    match /groupChat/{messageId} {
+      // All approved members can read group chat
+      allow read: if isApprovedMember();
+
+      // Approved, non-banned members can send messages
+      allow create: if isApprovedMember() &&
+                       isNotBanned() &&
+                       request.resource.data.senderId == request.auth.uid;
+
+      // Users can delete their own messages, admins can delete any
+      allow delete: if isUser(resource.data.senderId) || isAdmin();
+
+      // Admins can update messages (for pinning)
+      allow update: if isAdmin();
+    }
+
+    // Broadcasts
+    match /broadcasts/{broadcastId} {
+      // All approved members can read broadcasts
+      allow read: if isApprovedMember();
+
+      // Only admins can create broadcasts
+      allow create: if isAdmin();
+
+      // Only admins can update/delete broadcasts
+      allow update, delete: if isAdmin();
+    }
+
+    // Elections
+    match /elections/{electionId} {
+      // All approved members can read elections
+      allow read: if isApprovedMember();
+
+      // Only admins can create/manage elections
+      allow create, update, delete: if isAdmin();
+
+      // Nominations subcollection
+      match /nominations/{nominationId} {
+        // All approved members can read nominations
+        allow read: if isApprovedMember();
+
+        // Approved members can nominate during nomination period
+        allow create: if isApprovedMember() &&
+                         get(/databases/$(database)/documents/elections/$(electionId)).data.nominationOpen == true;
+
+        // Admins can manage nominations
+        allow update, delete: if isAdmin();
+      }
+
+      // Votes subcollection
+      match /votes/{voteId} {
+        // Users can only read their own votes
+        allow read: if isUser(resource.data.voterId);
+
+        // Approved members can vote once during voting period
+        allow create: if isApprovedMember() &&
+                         request.resource.data.voterId == request.auth.uid &&
+                         get(/databases/$(database)/documents/elections/$(electionId)).data.votingOpen == true;
+
+        // Admins can read all votes (for counting)
+        allow read: if isAdmin();
+      }
+    }
+
+    // Admin Actions (audit log)
+    match /adminActions/{actionId} {
+      // Only admins can read the audit log
+      allow read: if isAdmin();
+
+      // Only admins can create audit entries
+      allow create: if isAdmin();
+
+      // No updates or deletes (audit log is immutable)
+      allow update, delete: if false;
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isUser(resource.data.userId);
+
+      // System can create notifications (via client-side writes)
+      allow create: if isAuthenticated();
+
+      // Users can mark their notifications as read
+      allow update: if isUser(resource.data.userId);
+
+      // Users can delete their own notifications
+      allow delete: if isUser(resource.data.userId);
+    }
+
+    // Community Wall Posts (visible to all users)
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isApprovedMember();
+      allow update: if isApprovedMember();
+      allow delete: if isUser(resource.data.authorId) || isAdmin();
+    }
+  }
+}
