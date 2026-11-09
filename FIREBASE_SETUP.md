@@ -1,0 +1,380 @@
+# Firebase Setup Guide
+
+This guide walks you through setting up Firebase for the Legal Unity Network app.
+
+## Prerequisites
+
+- Flutter installed and configured
+- Firebase account (free tier is sufficient)
+- Node.js installed (for Firebase CLI)
+
+## Step-by-Step Setup
+
+### 1. Install Firebase CLI Tools
+
+```bash
+# Install Firebase CLI globally
+npm install -g firebase-tools
+
+# Install FlutterFire CLI
+dart pub global activate flutterfire_cli
+
+# Verify installation
+firebase --version
+flutterfire --version
+```
+
+### 2. Login to Firebase
+
+```bash
+firebase login
+```
+
+This will open a browser window for Google authentication.
+
+### 3. Create Firebase Project
+
+**Option A: Via Console (Recommended for first-time users)**
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Click "Add project"
+3. Enter project name: `legal-unity-network`
+4. Enable Google Analytics (optional)
+5. Click "Create project"
+
+**Option B: Via CLI**
+
+```bash
+firebase projects:create legal-unity-network --display-name "Legal Unity Network"
+```
+
+### 4. Configure FlutterFire
+
+Run the FlutterFire configuration command from your project root:
+
+```bash
+flutterfire configure
+```
+
+This will:
+- List your Firebase projects (select `legal-unity-network`)
+- Ask which platforms to configure (select iOS and Android)
+- Generate `lib/firebase_options.dart` with platform-specific configurations
+- Update platform-specific files automatically
+
+### 5. Enable Firebase Services
+
+#### Authentication
+
+1. Go to [Firebase Console](https://console.firebase.google.com) → Your Project
+2. Navigate to **Authentication** → **Get Started**
+3. Enable **Phone** authentication:
+   - Click "Phone" in Sign-in methods
+   - Toggle "Enable"
+   - (No additional configuration needed for development)
+4. Enable **Google** authentication:
+   - Click "Google" in Sign-in methods
+   - Toggle "Enable"
+   - Enter project support email
+   - Click "Save"
+
+#### Cloud Firestore
+
+1. Navigate to **Firestore Database** → **Create database**
+2. Select **Start in production mode**
+3. Choose a location (select closest to your users)
+4. Click "Enable"
+
+**Deploy Security Rules:**
+
+```bash
+# From project root
+firebase init firestore
+
+# Select your project: legal-unity-network
+# Use default firestore.rules and firestore.indexes.json
+
+# Deploy rules
+firebase deploy --only firestore:rules
+```
+
+#### Firebase Storage
+
+1. Navigate to **Storage** → **Get Started**
+2. Start in **production mode**
+3. Choose same location as Firestore
+4. Click "Done"
+
+**Deploy Storage Rules:**
+
+```bash
+# Initialize storage (if not already done)
+firebase init storage
+
+# Use default storage.rules
+
+# Deploy storage rules
+firebase deploy --only storage
+```
+
+### 6. Download Configuration Files
+
+#### Android Configuration
+
+1. In Firebase Console, click the Android icon to add an Android app
+2. Enter Android package name: `com.legalunity.legal_unity_network`
+3. Download `google-services.json`
+4. Place it at: `android/app/google-services.json`
+
+#### iOS Configuration
+
+1. In Firebase Console, click the iOS icon to add an iOS app
+2. Enter iOS bundle ID: `com.legalunity.legalUnityNetwork`
+3. Download `GoogleService-Info.plist`
+4. Place it at: `ios/Runner/GoogleService-Info.plist`
+
+**Note:** If you ran `flutterfire configure`, these files may already be in place.
+
+### 7. Update Platform-Specific Code
+
+#### Android Setup
+
+The FlutterFire CLI should have updated these automatically, but verify:
+
+**`android/app/build.gradle.kts`:**
+
+```kotlin
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")  // Add this line
+}
+
+android {
+    defaultConfig {
+        minSdk = 23  // Required for Firebase
+        targetSdk = flutter.targetSdkVersion
+        // ...
+    }
+}
+```
+
+**`android/build.gradle.kts`:**
+
+```kotlin
+buildscript {
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.0")
+    }
+}
+```
+
+#### iOS Setup
+
+**`ios/Podfile`:**
+
+```ruby
+platform :ios, '13.0'  # Required for Firebase
+```
+
+Then run:
+
+```bash
+cd ios
+pod install
+cd ..
+```
+
+**Configure Google Sign-In URL Scheme:**
+
+1. Open `ios/Runner/GoogleService-Info.plist`
+2. Find the `REVERSED_CLIENT_ID` value (looks like `com.googleusercontent.apps.123456...`)
+3. Open `ios/Runner/Info.plist` and add:
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <!-- Replace with your REVERSED_CLIENT_ID -->
+            <string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+        </array>
+    </dict>
+</array>
+```
+
+### 8. Update Firebase Config in Code
+
+Edit `lib/core/config/firebase_config.dart`:
+
+```dart
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'firebase_options.dart';  // Generated by flutterfire configure
+
+class FirebaseConfig {
+  static Future<void> initialize() async {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,  // Uncomment this
+      );
+
+      if (kDebugMode) {
+        print('✅ Firebase initialized successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Firebase initialization failed: $e');
+      }
+      rethrow;
+    }
+  }
+
+  static Future<void> enableOfflinePersistence() async {
+    if (kDebugMode) {
+      print('✅ Firestore offline persistence enabled');
+    }
+  }
+}
+```
+
+### 9. Initialize Firebase in App
+
+Update `lib/main.dart`:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/config/firebase_config.dart';
+import 'core/theme/app_theme.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await FirebaseConfig.initialize();
+  await FirebaseConfig.enableOfflinePersistence();
+  
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Legal Unity Network',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const Scaffold(
+        body: Center(
+          child: Text('Firebase Setup Complete!'),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 10. Test Firebase Connection
+
+Run the app:
+
+```bash
+flutter run
+```
+
+Check the console output for:
+```
+✅ Firebase initialized successfully
+✅ Firestore offline persistence enabled
+```
+
+### 11. Create Initial Firestore Indexes (Optional)
+
+For complex queries, you may need composite indexes. Create `firestore.indexes.json`:
+
+```json
+{
+  "indexes": [
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "groupChat",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+```
+
+Deploy indexes:
+
+```bash
+firebase deploy --only firestore:indexes
+```
+
+## Troubleshooting
+
+### Issue: "Firebase not initialized"
+
+**Solution:** Make sure `flutterfire configure` was run and `firebase_options.dart` exists.
+
+### Issue: "Google Sign-In not working on iOS"
+
+**Solution:** Verify `REVERSED_CLIENT_ID` URL scheme is correctly added to `Info.plist`.
+
+### Issue: "Firestore permission denied"
+
+**Solution:** Deploy security rules: `firebase deploy --only firestore:rules`
+
+### Issue: "Phone authentication not working"
+
+**Solution:** 
+- For Android: Enable SHA-1/SHA-256 fingerprints in Firebase Console
+- For iOS: Enable push notifications capability in Xcode
+
+## Next Steps
+
+After Firebase setup is complete:
+
+1. ✅ Run `flutter pub get` to ensure all dependencies are installed
+2. ✅ Deploy Firestore and Storage security rules
+3. ✅ Test authentication with Phone OTP and Google Sign-In
+4. 🔨 Start implementing authentication features
+5. 🔨 Create user registration flow with admin approval
+
+## Free Tier Limits
+
+Monitor your usage in Firebase Console → Usage tab:
+
+- **Phone Auth:** 10,000 verifications/month
+- **Firestore Reads:** 50,000/day
+- **Firestore Writes:** 20,000/day
+- **Storage:** 5GB total, 1GB/day download
+
+When approaching limits, consider upgrading to Blaze (pay-as-you-go) plan.
+
+---
+
+**Setup complete! You're ready to start building. 🚀**

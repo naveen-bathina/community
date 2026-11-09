@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "663128139692",
+    "project_id": "legal-unity-network",
+    "storage_bucket": "legal-unity-network.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663128139692:android:7f9310ff70ca3b958b7c09",
+        "android_client_info": {
+          "package_name": "com.legalunity.legal_unity_network"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "663128139692-3nbvmu4134a5hg6g3fe351o21umum3er.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.legalunity.legal_unity_network",
+            "certificate_hash": "8f63bc3dd6ce1ce4370bf1d5aee8c4bb42747d06"
+          }
+        },
+        {
+          "client_id": "663128139692-q9mdg8jd063bqfleem0d5qn0q9c54dmf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXLKpE_9TRAYKoHjJVjMcmuBhRJrxZdMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "663128139692-q9mdg8jd063bqfleem0d5qn0q9c54dmf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "663128139692-8ef08lbglhnd5h8ajldql9k1vq4vc43l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.legalunity.legalUnityNetwork"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

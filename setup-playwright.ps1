@@ -1,0 +1,1 @@
+npm list -g playwright 2>$null; if ($LASTEXITCODE -ne 0) { npm install -g playwright }
