@@ -2,17 +2,27 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:legal_unity_network/core/theme/app_theme.dart';
+import 'package:legal_unity_network/features/about/presentation/screens/about_screen.dart';
 import 'package:legal_unity_network/features/admin/presentation/screens/admin_join_requests_screen.dart';
+import 'package:legal_unity_network/features/admin/presentation/screens/manage_default_admins_screen.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/presentation/providers/auth_provider.dart';
+import 'package:legal_unity_network/features/help/presentation/screens/help_support_screen.dart';
+import 'package:legal_unity_network/features/legal/presentation/screens/legal_screen.dart';
 import 'package:legal_unity_network/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:legal_unity_network/features/profile/presentation/screens/my_profile_screen.dart';
 import 'package:legal_unity_network/features/profile/presentation/screens/user_settings_screen.dart';
 import 'package:legal_unity_network/shared/models/user_model.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 
 enum AppProfileMenuAction {
   manageProfile,
   userSettings,
+  aboutUnion,
+  legalCompliance,
+  helpSupport,
+  inviteColleagues,
+  manageDefaultAdmins,
   verifyJoinRequests,
   signOut,
 }
@@ -74,6 +84,40 @@ class AppTopBarActions extends ConsumerWidget {
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => UserSettingsScreen(currentUser: effectiveUser),
+          ),
+        );
+        break;
+      case AppProfileMenuAction.aboutUnion:
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AboutScreen(),
+          ),
+        );
+        break;
+      case AppProfileMenuAction.legalCompliance:
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const LegalScreen(),
+          ),
+        );
+        break;
+      case AppProfileMenuAction.helpSupport:
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const HelpSupportScreen(),
+          ),
+        );
+        break;
+      case AppProfileMenuAction.inviteColleagues:
+        await showDialog<void>(
+          context: context,
+          builder: (_) => const InviteAdvocatesDialog(),
+        );
+        break;
+      case AppProfileMenuAction.manageDefaultAdmins:
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const ManageDefaultAdminsScreen(),
           ),
         );
         break;
@@ -172,6 +216,73 @@ class AppTopBarActions extends ConsumerWidget {
                 title: Text('User Settings'),
               ),
             ),
+            const PopupMenuItem<AppProfileMenuAction>(
+              value: AppProfileMenuAction.aboutUnion,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.info_outline,
+                  color: AppTheme.primaryBlue,
+                ),
+                title: Text('About Union'),
+              ),
+            ),
+            const PopupMenuItem<AppProfileMenuAction>(
+              value: AppProfileMenuAction.legalCompliance,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.policy_outlined,
+                  color: AppTheme.primaryBlue,
+                ),
+                title: Text('Legal & Compliance'),
+              ),
+            ),
+            const PopupMenuItem<AppProfileMenuAction>(
+              value: AppProfileMenuAction.helpSupport,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.help_outline,
+                  color: AppTheme.primaryBlue,
+                ),
+                title: Text('Help & Support'),
+              ),
+            ),
+            const PopupMenuItem<AppProfileMenuAction>(
+              value: AppProfileMenuAction.inviteColleagues,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.share_outlined,
+                  color: AppTheme.primaryBlue,
+                ),
+                title: Text('Invite Colleagues'),
+              ),
+            ),
+            if (effectiveUser.isSuperAdmin)
+              PopupMenuItem<AppProfileMenuAction>(
+                value: AppProfileMenuAction.manageDefaultAdmins,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.security,
+                    color: Colors.amber.shade800,
+                  ),
+                  title: Text(
+                    'Super User: Set Default Admins',
+                    style: TextStyle(
+                      color: Colors.amber.shade900,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             if (effectiveUser.isAdmin)
               const PopupMenuItem<AppProfileMenuAction>(
                 value: AppProfileMenuAction.verifyJoinRequests,

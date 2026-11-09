@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/shared/models/user_model.dart';
 
 /// Authenticated user entity including join-request profile details.
@@ -44,6 +45,7 @@ class AuthUser extends Equatable {
 
   /// Whether the user has completed and submitted the mandatory join request details.
   bool get hasSubmittedJoinRequest =>
+      isSuperAdmin ||
       isApproved ||
       ((firstName != null && firstName!.trim().isNotEmpty) &&
           (lastName != null && lastName!.trim().isNotEmpty) &&
@@ -51,12 +53,17 @@ class AuthUser extends Equatable {
               stateBarAssociation!.trim().isNotEmpty) &&
           (enrollmentNumber != null && enrollmentNumber!.trim().isNotEmpty));
 
-  bool get isApproved => status == UserStatus.approved;
-  bool get isPending => status == UserStatus.pending;
-  bool get isRejected => status == UserStatus.rejected;
-  bool get isBanned => status == UserStatus.banned;
+  bool get isApproved => status == UserStatus.approved || isSuperAdmin;
+  bool get isPending => status == UserStatus.pending && !isSuperAdmin;
+  bool get isRejected => status == UserStatus.rejected && !isSuperAdmin;
+  bool get isBanned => status == UserStatus.banned && !isSuperAdmin;
   bool get isAdmin =>
-      role == UserRole.admin || role == UserRole.foundingAdmin;
+      role == UserRole.admin ||
+      role == UserRole.foundingAdmin ||
+      role == UserRole.superAdmin ||
+      AppConfig.isSuperAdminEmail(email);
+  bool get isSuperAdmin =>
+      role == UserRole.superAdmin || AppConfig.isSuperAdminEmail(email);
 
   AuthUser copyWith({
     String? uid,
@@ -129,8 +136,12 @@ class AuthUser extends Equatable {
       enrollmentNumber: json['enrollmentNumber'] as String?,
       photoUrl: json['photoUrl'] as String?,
       rejectionReason: json['rejectionReason'] as String?,
-      status: UserStatus.fromString((json['status'] as String?) ?? 'pending'),
-      role: UserRole.fromString((json['role'] as String?) ?? 'member'),
+      status: AppConfig.isSuperAdminEmail(json['email'] as String?)
+          ? UserStatus.approved
+          : UserStatus.fromString((json['status'] as String?) ?? 'pending'),
+      role: AppConfig.isSuperAdminEmail(json['email'] as String?)
+          ? UserRole.superAdmin
+          : UserRole.fromString((json['role'] as String?) ?? 'member'),
       createdAt: json['createdAt'] is String
           ? (DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now())
           : DateTime.now(),

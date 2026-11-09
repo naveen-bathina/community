@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/domain/entities/auth_user.dart';
+import '../../../../shared/widgets/app_brand.dart';
 import '../../../../shared/widgets/app_top_bar_actions.dart';
 import '../../domain/entities/election.dart';
 import '../providers/election_provider.dart';
@@ -102,7 +103,14 @@ class _ElectionsScreenState extends ConsumerState<ElectionsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Governance & Elections'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLogo(size: 26, showBadgeBorder: false),
+            SizedBox(width: 8),
+            Text('Governance & Elections'),
+          ],
+        ),
         backgroundColor: AppTheme.primaryBlue,
         foregroundColor: Colors.white,
         actions: const [

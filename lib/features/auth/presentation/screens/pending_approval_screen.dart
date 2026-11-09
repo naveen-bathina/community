@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:legal_unity_network/features/about/presentation/screens/about_screen.dart';
 import 'package:legal_unity_network/features/admin/presentation/screens/admin_join_requests_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/providers/auth_provider.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/join_request_screen.dart';
+import 'package:legal_unity_network/features/help/presentation/screens/help_support_screen.dart';
+import 'package:legal_unity_network/features/legal/presentation/screens/legal_screen.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 
 /// Displayed to authenticated Applicants whose Join Request is `pending` admin verification.
 class PendingApprovalScreen extends ConsumerWidget {
@@ -62,11 +66,7 @@ class PendingApprovalScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.hourglass_top_rounded,
-                size: 72,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              const AppLogo(size: 76),
               const SizedBox(height: 16),
               Text(
                 'Pending Admin Approval',
@@ -155,6 +155,36 @@ class PendingApprovalScreen extends ConsumerWidget {
               TextButton(
                 onPressed: () => ref.read(authProvider.notifier).signOut(),
                 child: const Text('Sign Out'),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.info_outline, size: 16),
+                    label: const Text('About Union', style: TextStyle(fontSize: 12)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.help_outline, size: 16),
+                    label: const Text('Help & Support', style: TextStyle(fontSize: 12)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const HelpSupportScreen()),
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.policy_outlined, size: 16),
+                    label: const Text('Terms & By-Laws', style: TextStyle(fontSize: 12)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const LegalScreen()),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

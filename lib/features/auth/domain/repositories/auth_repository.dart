@@ -1,5 +1,6 @@
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/join_request.dart';
+import 'package:legal_unity_network/shared/models/user_model.dart';
 
 abstract class AuthRepository {
   /// Stream of authentication state changes (emits null when signed out).
@@ -33,6 +34,21 @@ abstract class AuthRepository {
     required String targetUserId,
     required bool approve,
     String? rejectionReason,
+  });
+
+  /// Fetches all registered / approved members (for Super User admin assignment).
+  Future<List<AuthUser>> getAllMembers();
+
+  /// Updates a user's role (e.g. appointing Founding Admin or Admin).
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  });
+
+  /// Appoints a default admin by email address.
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
   });
 
   /// Signs out the current user and clears the local session.

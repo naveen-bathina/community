@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:legal_unity_network/features/profile/presentation/providers/profile_provider.dart';
 import 'package:legal_unity_network/shared/models/user_model.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 import 'package:legal_unity_network/shared/widgets/app_top_bar_actions.dart';
 
 class DirectoryScreen extends ConsumerWidget {
@@ -25,7 +26,14 @@ class DirectoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advocate Directory'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLogo(size: 26, showBadgeBorder: false),
+            SizedBox(width: 8),
+            Text('Advocate Directory'),
+          ],
+        ),
         actions: const [
           AppTopBarActions(),
         ],

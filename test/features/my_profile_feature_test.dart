@@ -50,6 +50,22 @@ class FakeAuthRepoForProfileTest implements AuthRepository {
     required bool approve,
     String? rejectionReason,
   }) async => null;
+
+  @override
+  Future<List<AuthUser>> getAllMembers() async =>
+      _user != null ? [_user] : [];
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async => null;
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async => null;
 }
 
 class FakeMyProfileRepository implements ProfileRepository {

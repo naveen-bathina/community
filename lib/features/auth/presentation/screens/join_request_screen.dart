@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:legal_unity_network/core/utils/validation_utils.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/join_request.dart';
 import 'package:legal_unity_network/features/auth/presentation/providers/auth_provider.dart';
+import 'package:legal_unity_network/features/legal/presentation/screens/legal_screen.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 
 /// Screen where a newly signed-up user submits their Join Request details
 /// (First Name, Last Name, Date Of Birth, Gender, Mobile Number,
@@ -69,6 +71,7 @@ class _JoinRequestScreenState extends ConsumerState<JoinRequestScreen> {
   String? _selectedStateBar;
   Uint8List? _pickedPhotoBytes;
   String? _existingPhotoUrl;
+  bool _agreedToTerms = true;
   bool _isSubmitting = false;
   String? _error;
 
@@ -219,6 +222,11 @@ class _JoinRequestScreenState extends ConsumerState<JoinRequestScreen> {
       setState(() => _error = 'State Bar Association is required');
       return;
     }
+    if (!_agreedToTerms) {
+      setState(() => _error =
+          'You must affirm the declaration and accept the Terms of Service');
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -276,6 +284,8 @@ class _JoinRequestScreenState extends ConsumerState<JoinRequestScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const Center(child: AppLogo(size: 60)),
+                const SizedBox(height: 16),
                 Text(
                   'Complete Your Advocate Verification',
                   style: Theme.of(context).textTheme.headlineSmall,
@@ -442,7 +452,102 @@ class _JoinRequestScreenState extends ConsumerState<JoinRequestScreen> {
                   textCapitalization: TextCapitalization.characters,
                   validator: ValidationUtils.validateBarNumber,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // Statutory Declaration & Terms Consent
+                Card(
+                  elevation: 0,
+                  color: Colors.blue.shade50.withValues(alpha: 0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(color: Colors.blue.shade200),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _agreedToTerms,
+                      onChanged: _isSubmitting
+                          ? null
+                          : (val) =>
+                              setState(() => _agreedToTerms = val ?? false),
+                      title: const Text(
+                        'Advocate Affirmation & Consent',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Wrap(
+                          children: [
+                            const Text(
+                              'I affirm that I am an enrolled advocate with the specified Bar Council. I agree to the ',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      const LegalScreen(initialTabIndex: 0),
+                                ),
+                              ),
+                              child: const Text(
+                                'Terms of Service',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const Text(', ', style: TextStyle(fontSize: 12)),
+                            InkWell(
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      const LegalScreen(initialTabIndex: 1),
+                                ),
+                              ),
+                              child: const Text(
+                                'Privacy Policy',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const Text(' & ', style: TextStyle(fontSize: 12)),
+                            InkWell(
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      const LegalScreen(initialTabIndex: 3),
+                                ),
+                              ),
+                              child: const Text(
+                                'Code of Conduct',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const Text('.', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 if (_error != null) ...[
                   Text(

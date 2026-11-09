@@ -8,6 +8,7 @@ import 'package:legal_unity_network/features/notifications/presentation/provider
 import 'package:legal_unity_network/features/profile/presentation/screens/directory_screen.dart';
 import 'package:legal_unity_network/features/wall/presentation/screens/community_wall_screen.dart';
 import 'package:legal_unity_network/shared/models/user_model.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 import 'package:legal_unity_network/shared/widgets/app_top_bar_actions.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -83,7 +84,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildWallHomeTab(BuildContext context, AuthUser effectiveUser) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppConfig.appName),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppLogo(size: 28, showBadgeBorder: true),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                AppConfig.appName,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         actions: const [
           AppTopBarActions(),
         ],

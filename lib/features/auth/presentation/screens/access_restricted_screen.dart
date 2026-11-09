@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/features/auth/presentation/providers/auth_provider.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/join_request_screen.dart';
+import 'package:legal_unity_network/features/help/presentation/screens/help_support_screen.dart';
+import 'package:legal_unity_network/features/legal/presentation/screens/legal_screen.dart';
 import 'package:legal_unity_network/shared/models/user_model.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 
 /// Displayed when an authenticated user's status is `rejected` or `banned`.
 class AccessRestrictedScreen extends ConsumerWidget {
@@ -25,9 +28,11 @@ class AccessRestrictedScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const AppLogo(size: 64),
+              const SizedBox(height: 16),
               Icon(
                 Icons.block,
-                size: 80,
+                size: 64,
                 color: Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 24),
@@ -81,6 +86,37 @@ class AccessRestrictedScreen extends ConsumerWidget {
                 onPressed: () => ref.read(authProvider.notifier).signOut(),
                 icon: const Icon(Icons.logout),
                 label: const Text('Sign Out'),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.support_agent, size: 16),
+                    label: const Text('Grievance Redressal / Help', style: TextStyle(fontSize: 12)),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const HelpSupportScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.policy_outlined, size: 16),
+                    label: const Text('Review Code of Conduct', style: TextStyle(fontSize: 12)),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LegalScreen(initialTabIndex: 3),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

@@ -6,12 +6,17 @@ import 'package:legal_unity_network/core/config/firebase_config.dart';
 import 'package:legal_unity_network/core/config/supabase_config.dart';
 import 'package:legal_unity_network/core/router/protected_route.dart';
 import 'package:legal_unity_network/core/theme/app_theme.dart';
+import 'package:legal_unity_network/features/about/presentation/screens/about_screen.dart';
+import 'package:legal_unity_network/features/admin/presentation/screens/manage_default_admins_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/access_restricted_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/auth_gate_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/home_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/pending_approval_screen.dart';
 import 'package:legal_unity_network/features/auth/presentation/screens/phone_login_screen.dart';
+import 'package:legal_unity_network/features/help/presentation/screens/help_support_screen.dart';
+import 'package:legal_unity_network/features/legal/presentation/screens/legal_screen.dart';
 import 'package:legal_unity_network/firebase_options.dart';
+import 'package:legal_unity_network/shared/widgets/app_brand.dart';
 
 /// Simple full-screen splash page displayed while the app boots.
 class SplashPage extends StatelessWidget {
@@ -25,16 +30,32 @@ class SplashPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.refresh,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            const AppLogo(size: 88),
             const SizedBox(height: 24),
             Text(
-              'Loading ${AppConfig.appName.toLowerCase()}...',
-              style: Theme.of(context).textTheme.headlineSmall,
+              AppConfig.appName,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryBlue,
+                  ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppConfig.appMotto,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.brown.shade800,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
             ),
           ],
         ),
@@ -66,6 +87,11 @@ class MyApp extends ConsumerWidget {
               requireApproved: true,
               child: HomeScreen(),
             ),
+        '/about': (context) => const AboutScreen(),
+        '/legal': (context) => const LegalScreen(),
+        '/help': (context) => const HelpSupportScreen(),
+        '/admin/default-admins': (context) =>
+            const ManageDefaultAdminsScreen(),
       },
     );
   }

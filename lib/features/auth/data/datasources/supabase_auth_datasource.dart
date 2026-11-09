@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/join_request.dart';
 import 'package:legal_unity_network/features/auth/domain/repositories/auth_repository.dart';
@@ -56,6 +57,11 @@ class SupabaseAuthDataSource implements AuthRepository {
     }
     if (appMeta['role'] is String) {
       role = _parseRole(appMeta['role'] as String);
+    }
+
+    if (AppConfig.isSuperAdminEmail(user.email)) {
+      status = UserStatus.approved;
+      role = UserRole.superAdmin;
     }
 
     // 2. Fetch authoritative profile and join request fields from public.profiles
@@ -305,6 +311,66 @@ class SupabaseAuthDataSource implements AuthRepository {
       return e.message;
     } catch (e) {
       return 'Failed to update join request: $e';
+    }
+  }
+
+  @override
+  Future<List<AuthUser>> getAllMembers() async {
+    try {
+      final rows = await _supabase
+          .from('profiles')
+          .select()
+          .order('created_at', ascending: true);
+
+      return (rows as List<dynamic>)
+          .map((e) => _mapProfileRow(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    try {
+      await _supabase.from('profiles').update({
+        'role': newRole.value,
+        'status': UserStatus.approved.value,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', targetUserId);
+      return null;
+    } on PostgrestException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'Failed to update role: $e';
+    }
+  }
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async {
+    try {
+      final cleanEmail = email.trim().toLowerCase();
+      final rows = await _supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', cleanEmail)
+          .maybeSingle();
+
+      if (rows != null && rows['id'] is String) {
+        return updateUserRole(
+          targetUserId: rows['id'] as String,
+          newRole: role,
+        );
+      }
+      return 'No member found registered with email $cleanEmail';
+    } catch (e) {
+      return 'Failed to appoint default admin: $e';
     }
   }
 

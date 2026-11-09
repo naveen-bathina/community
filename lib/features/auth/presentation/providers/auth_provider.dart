@@ -10,6 +10,7 @@ import 'package:legal_unity_network/features/auth/data/datasources/supabase_auth
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/join_request.dart';
 import 'package:legal_unity_network/features/auth/domain/repositories/auth_repository.dart';
+import 'package:legal_unity_network/shared/models/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser, AuthState, User;
 
 /// Singleton SupabaseClient exposed through Riverpod when initialized.
@@ -61,6 +62,23 @@ class UnconfiguredAuthDataSource implements AuthRepository {
       _configMessage;
 
   @override
+  Future<List<AuthUser>> getAllMembers() async => const [];
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async =>
+      _configMessage;
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async =>
+      _configMessage;
+
+  @override
   Future<void> signOut() async {}
 }
 
@@ -98,6 +116,13 @@ final pendingJoinRequestsProvider =
     FutureProvider.autoDispose<List<AuthUser>>((ref) async {
   final repository = ref.watch(authRepositoryProvider);
   return repository.getPendingJoinRequests();
+});
+
+/// Provider that fetches all members for super-user admin management.
+final allMembersForSuperUserProvider =
+    FutureProvider.autoDispose<List<AuthUser>>((ref) async {
+  final repository = ref.watch(authRepositoryProvider);
+  return repository.getAllMembers();
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
@@ -247,6 +272,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return error;
   }
 
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    final error = await _authRepository.updateUserRole(
+      targetUserId: targetUserId,
+      newRole: newRole,
+    );
+    if (error == null && state.user?.uid == targetUserId) {
+      await refreshUser();
+    }
+    return error;
+  }
+
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async {
+    return _authRepository.setDefaultAdminByEmail(email, role: role);
+  }
+
   Future<void> signOut() async {
     await _storage.clear();
     await _authRepository.signOut();
@@ -297,4 +343,5 @@ class AuthState {
   bool get isRejected => user?.isRejected ?? false;
   bool get isBanned => user?.isBanned ?? false;
   bool get isAdmin => user?.isAdmin ?? false;
+  bool get isSuperAdmin => user?.isSuperAdmin ?? false;
 }

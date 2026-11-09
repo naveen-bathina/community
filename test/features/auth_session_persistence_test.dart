@@ -53,6 +53,29 @@ class FakePersistenceAuthRepo implements AuthRepository {
       null;
 
   @override
+  Future<List<AuthUser>> getAllMembers() async =>
+      _currentUser != null ? [_currentUser!] : [];
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    if (_currentUser?.uid == targetUserId) {
+      _currentUser = _currentUser!.copyWith(role: newRole);
+      _streamController.add(_currentUser);
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async =>
+      null;
+
+  @override
   Future<void> signOut() async {
     _currentUser = null;
     _streamController.add(null);

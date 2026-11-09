@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../core/config/app_config.dart';
 
 /// User model representing a Member or Applicant
 class UserModel extends Equatable {
@@ -52,10 +53,18 @@ class UserModel extends Equatable {
   });
 
   /// Check if user is an approved member
-  bool get isApproved => status == UserStatus.approved;
+  bool get isApproved => status == UserStatus.approved || isSuperAdmin;
 
   /// Check if user is an admin
-  bool get isAdmin => role == UserRole.admin || role == UserRole.foundingAdmin;
+  bool get isAdmin =>
+      role == UserRole.admin ||
+      role == UserRole.foundingAdmin ||
+      role == UserRole.superAdmin ||
+      AppConfig.isSuperAdminEmail(email);
+
+  /// Check if user is the designated Super User
+  bool get isSuperAdmin =>
+      role == UserRole.superAdmin || AppConfig.isSuperAdminEmail(email);
 
   /// Check if user profile is complete
   bool get isProfileComplete {
@@ -284,7 +293,8 @@ enum UserStatus {
 enum UserRole {
   member('member'),
   admin('admin'),
-  foundingAdmin('founding_admin');
+  foundingAdmin('founding_admin'),
+  superAdmin('super_admin');
 
   final String value;
   const UserRole(this.value);

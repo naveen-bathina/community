@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/join_request.dart';
 import 'package:legal_unity_network/features/auth/domain/repositories/auth_repository.dart';
@@ -106,6 +107,11 @@ class FirebaseAuthDataSource implements AuthRepository {
         updatedAt =
             DateTime.tryParse(data['updatedAt'] as String) ?? updatedAt;
       }
+    }
+
+    if (AppConfig.isSuperAdminEmail(user.email)) {
+      status = UserStatus.approved;
+      role = UserRole.superAdmin;
     }
 
     return AuthUser(
@@ -367,6 +373,64 @@ class FirebaseAuthDataSource implements AuthRepository {
       return e.message ?? 'Failed to update join request (${e.code})';
     } catch (e) {
       return 'Failed to update join request: $e';
+    }
+  }
+
+  @override
+  Future<List<AuthUser>> getAllMembers() async {
+    try {
+      final query = await _db.collection('users').get();
+      return query.docs
+          .map((doc) => _mapFirestoreDoc(doc.id, doc.data()))
+          .toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    try {
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+      await _db.collection('users').doc(targetUserId).update({
+        'role': newRole.value,
+        'status': UserStatus.approved.value,
+        'updatedAt': nowIso,
+      });
+      return null;
+    } on FirebaseException catch (e) {
+      return e.message ?? 'Failed to update role (${e.code})';
+    } catch (e) {
+      return 'Failed to update role: $e';
+    }
+  }
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async {
+    try {
+      final cleanEmail = email.trim().toLowerCase();
+      final query = await _db
+          .collection('users')
+          .where('email', isEqualTo: cleanEmail)
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        return updateUserRole(
+          targetUserId: query.docs.first.id,
+          newRole: role,
+        );
+      }
+      return 'No member found registered with email $cleanEmail';
+    } catch (e) {
+      return 'Failed to appoint default admin: $e';
     }
   }
 

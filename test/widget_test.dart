@@ -82,6 +82,37 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<List<AuthUser>> getAllMembers() async {
+    final list = <AuthUser>[];
+    if (_user != null) list.add(_user!);
+    list.addAll(pendingRequests);
+    return list;
+  }
+
+  @override
+  Future<String?> updateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    if (_user?.uid == targetUserId) {
+      _user = _user!.copyWith(role: newRole, status: UserStatus.approved);
+      _controller.add(_user);
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> setDefaultAdminByEmail(
+    String email, {
+    UserRole role = UserRole.foundingAdmin,
+  }) async {
+    if (_user?.email.toLowerCase() == email.trim().toLowerCase()) {
+      return updateUserRole(targetUserId: _user!.uid, newRole: role);
+    }
+    return null;
+  }
+
+  @override
   Future<void> signOut() async {
     emitUser(null);
   }
