@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/core/config/firebase_config.dart';
 import 'package:legal_unity_network/core/config/supabase_config.dart';
@@ -74,6 +75,10 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
+      builder: (context, child) => FTheme(
+        data: FThemes.zinc.light,
+        child: child!,
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthGateScreen(),

@@ -134,4 +134,91 @@ void main() {
       expect(find.text('Alerts (0)'), findsOneWidget);
     },
   );
+
+  test(
+    'BroadcastMessage.fromMap correctly parses Supabase maps with author_id and author_name',
+    () {
+      final message = BroadcastMessage.fromMap({
+        'id': 'b-supabase-1',
+        'author_id': 'uid-12345',
+        'author_name': 'Chief Admin',
+        'title': 'Emergency Notice',
+        'content': 'Courts closed tomorrow due to gazetted holiday.',
+        'created_at': '2026-11-09T10:00:00.000Z',
+      });
+
+      expect(message.id, 'b-supabase-1');
+      expect(message.senderId, 'uid-12345');
+      expect(message.senderName, 'Chief Admin');
+      expect(message.title, 'Emergency Notice');
+      expect(message.content, 'Courts closed tomorrow due to gazetted holiday.');
+    },
+  );
+
+  testWidgets(
+    'NotificationsScreen displays error SnackBar when publishBroadcast fails without throwing uncaught',
+    (WidgetTester tester) async {
+      final errorRepo = ErrorThrowingNotificationsRepository();
+      final adminUser = AuthUser(
+        uid: 'admin-1',
+        email: 'vikram@legalunity.org',
+        firstName: 'Vikram',
+        lastName: 'Rao',
+        role: UserRole.admin,
+        status: UserStatus.approved,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            notificationsRepositoryProvider.overrideWithValue(errorRepo),
+          ],
+          child: MaterialApp(
+            home: NotificationsScreen(currentUser: adminUser),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('new_broadcast_button')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('broadcast_title_input')),
+        'Test Broadcast',
+      );
+      await tester.enterText(
+        find.byKey(const Key('broadcast_content_input')),
+        'Test Content',
+      );
+      await tester.tap(find.byKey(const Key('publish_broadcast_submit')));
+      await tester.pumpAndSettle();
+
+      // Verify that error snackbar appears instead of throwing an unhandled exception
+      expect(find.textContaining('Could not publish broadcast'), findsOneWidget);
+    },
+  );
+}
+
+class ErrorThrowingNotificationsRepository implements NotificationsRepository {
+  @override
+  Future<List<BroadcastMessage>> getBroadcasts() async => [];
+
+  @override
+  Future<List<AppNotification>> getNotifications(String userId) async => [];
+
+  @override
+  Future<void> markAsRead(String notificationId) async {}
+
+  @override
+  Future<void> publishBroadcast({
+    required String senderId,
+    required String senderName,
+    required String title,
+    required String content,
+  }) async {
+    throw Exception('Simulated permission-denied error');
+  }
 }
