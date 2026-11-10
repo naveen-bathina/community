@@ -96,19 +96,37 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (submitted == true &&
         titleCtrl.text.trim().isNotEmpty &&
         contentCtrl.text.trim().isNotEmpty) {
-      await ref.read(notificationsRepositoryProvider).publishBroadcast(
-            senderId: widget.currentUser.uid,
-            senderName: widget.currentUser.fullName,
-            title: titleCtrl.text.trim(),
-            content: contentCtrl.text.trim(),
+      try {
+        await ref.read(notificationsRepositoryProvider).publishBroadcast(
+              senderId: widget.currentUser.uid,
+              senderName: widget.currentUser.fullName,
+              title: titleCtrl.text.trim(),
+              content: contentCtrl.text.trim(),
+            );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Broadcast published successfully')),
           );
-      await _loadData();
+        }
+        await _loadData();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not publish broadcast: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
     }
   }
 
   Future<void> _markAsRead(String notificationId) async {
-    await ref.read(notificationsRepositoryProvider).markAsRead(notificationId);
-    await _loadData();
+    try {
+      await ref.read(notificationsRepositoryProvider).markAsRead(notificationId);
+      await _loadData();
+    } catch (_) {}
   }
 
   @override

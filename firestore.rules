@@ -20,13 +20,22 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    function isSuperAdmin() {
+      return isAuthenticated() &&
+             (request.auth.token.email in ['naveen.bathina9@gmail.com', 'admin@legalunity.org']);
+    }
+
     function isApprovedMember() {
-      return userExists() && getUserData().status == 'approved';
+      return isSuperAdmin() || (userExists() && getUserData().status == 'approved');
     }
 
     function isAdmin() {
-      return userExists() &&
-             (getUserData().role == 'admin' || getUserData().role == 'founding_admin');
+      return isSuperAdmin() ||
+             (userExists() &&
+              (getUserData().role == 'admin' ||
+               getUserData().role == 'founding_admin' ||
+               getUserData().role == 'super_admin' ||
+               getUserData().role == 'superAdmin'));
     }
 
     function isNotBanned() {

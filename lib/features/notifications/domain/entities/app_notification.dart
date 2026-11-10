@@ -26,8 +26,8 @@ class BroadcastMessage {
 
     return BroadcastMessage(
       id: (docId ?? map['id'] ?? '').toString(),
-      senderId: (map['senderId'] ?? map['sender_id'] ?? '').toString(),
-      senderName: (map['senderName'] ?? map['sender_name'] ?? 'Admin').toString(),
+      senderId: (map['senderId'] ?? map['sender_id'] ?? map['author_id'] ?? '').toString(),
+      senderName: (map['senderName'] ?? map['sender_name'] ?? map['author_name'] ?? 'Admin').toString(),
       title: (map['title'] ?? '').toString(),
       content: (map['content'] ?? '').toString(),
       createdAt: parsedTime,
