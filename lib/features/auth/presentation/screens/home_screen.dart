@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:legal_unity_network/core/config/app_config.dart';
 import 'package:legal_unity_network/features/auth/domain/entities/auth_user.dart';
 import 'package:legal_unity_network/features/auth/presentation/providers/auth_provider.dart';
@@ -52,31 +53,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (showElections) ElectionsScreen(currentUser: effectiveUser),
     ];
 
-    final navItems = <BottomNavigationBarItem>[
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.home_outlined),
-        label: 'Home',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.people_outline),
-        label: 'Directory',
-      ),
-      if (showElections)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.how_to_vote_outlined),
-          label: 'Elections',
-        ),
-    ];
-
     final safeIndex = _selectedIndex >= pages.length ? 0 : _selectedIndex;
 
     return Scaffold(
       body: pages[safeIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: safeIndex,
-        type: BottomNavigationBarType.fixed,
-        onTap: (idx) => setState(() => _selectedIndex = idx),
-        items: navItems,
+      bottomNavigationBar: FBottomNavigationBar(
+        index: safeIndex,
+        onChange: (idx) => setState(() => _selectedIndex = idx),
+        children: [
+          const FBottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: Text('Home'),
+          ),
+          const FBottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            label: Text('Directory'),
+          ),
+          if (showElections)
+            const FBottomNavigationBarItem(
+              icon: Icon(Icons.how_to_vote_outlined),
+              label: Text('Elections'),
+            ),
+        ],
       ),
     );
   }
@@ -104,8 +102,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('create_wall_post_button'),
         onPressed: () => _wallKey.currentState?.showCreatePostDialog(),
-        icon: const Icon(Icons.post_add),
-        label: const Text('New Post'),
+        icon: const Icon(Icons.post_add, size: 20),
+        label: const Text(
+          'New Post',
+          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.3),
+        ),
+        backgroundColor: context.theme.colors.primary,
+        foregroundColor: context.theme.colors.primaryForeground,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: context.theme.style.borderRadius,
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async => setState(() {}),
